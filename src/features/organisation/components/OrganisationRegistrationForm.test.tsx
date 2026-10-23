@@ -14,6 +14,26 @@ vi.mock('../api/organisationApi', async (importOriginal) => ({
   getMyOrganisation: (...args: unknown[]) => getMyOrganisation(...args),
 }));
 
+// Two-level slice of the administrative-area tree, keyed by the parent's area_id.
+const AREAS: Record<string, Array<[id: string, name: string]>> = {
+  '': [['region-ET14', 'Addis Ababa'], ['region-ET04', 'Oromia']],
+  'region-ET14': [['zone-ET1401', 'Arada Sub-city']],
+  'region-ET04': [['zone-ET0401', 'East Shewa']],
+  'zone-ET1401': [['woreda-ET140101', 'Woreda 01']],
+  'woreda-ET140101': [['kebele-ET14010101', 'Kebele 01']],
+};
+const useAreas = vi.fn(({ parents = [] }: { level: string; parents?: readonly string[] }) => ({
+  areas: (AREAS[parents[0] ?? ''] ?? []).map(([area_id, area_name]) => ({ area_id, area_name })),
+  isLoading: false,
+  isError: false,
+  isTruncated: false,
+}));
+
+vi.mock('@/features/metadata', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/metadata')>()),
+  useAreas: (...args: Parameters<typeof useAreas>) => useAreas(...args),
+}));
+
 import { ApiError } from '@/lib/api/fetchApi';
 import type { OrganisationKind } from '@/lib/organisationKind';
 import { buildInitialOrganisationValues } from '../lib/defaults';
@@ -40,6 +60,8 @@ function renderForm(kind: OrganisationKind = 'ngo') {
 const type = (label: RegExp | string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 
+const pick = (area: string) => fireEvent.click(screen.getByRole('option', { name: area }));
+
 const registerButton = () => screen.getByRole('button', { name: /Register Organization/ });
 
 function fillValidForm(entityType: string) {
@@ -48,8 +70,8 @@ function fillValidForm(entityType: string) {
   type(/^Registration Number/, '0012345678');
   type(/^Authorised Representative/, 'Almaz Tesfaye');
   type(/^Street address/, 'Bole Road, Block 4');
-  type(/^Zone/, 'Addis Ababa');
-  type(/^Region/, 'Addis Ababa');
+  pick('Addis Ababa');
+  pick('Arada Sub-city');
   type(/^Postal code/, '1000');
   type(/^Phone/, '0911234567');
   fireEvent.click(screen.getByRole('checkbox'));
@@ -75,7 +97,7 @@ describe('OrganisationRegistrationForm', () => {
       /^Authorised Representative/,
       /^Street address/,
       /^Kebele \/ Village/,
-      /^Woreda \/ District/,
+      /^Woreda/,
       /^Zone/,
       /^Region/,
       /^Country\s*\*/,
@@ -163,6 +185,103 @@ describe('OrganisationRegistrationForm', () => {
     expect(screen.queryByRole('option', { name: 'Local NGO' })).not.toBeInTheDocument();
   });
 
+  describe('registered address areas', () => {
+    it('lists Regions first and each narrower level only once the one above is chosen', () => {
+      renderForm();
+      const zone = () => screen.getByRole('combobox', { name: /^Zone/ });
+      const woreda = () => screen.getByRole('combobox', { name: /^Woreda/ });
+      const kebele = () => screen.getByRole('combobox', { name: /^Kebele/ });
+
+      expect(screen.getByRole('option', { name: 'Oromia' })).toBeInTheDocument();
+      expect(zone()).toBeDisabled();
+      expect(woreda()).toBeDisabled();
+      expect(kebele()).toBeDisabled();
+      expect(useAreas).toHaveBeenCalledWith(expect.objectContaining({ level: 'Zone', parents: [] }));
+
+      pick('Addis Ababa');
+      expect(useAreas).toHaveBeenCalledWith({ level: 'Zone', parents: ['region-ET14'] });
+      expect(zone()).toBeEnabled();
+      expect(woreda()).toBeDisabled();
+
+      pick('Arada Sub-city');
+      expect(useAreas).toHaveBeenCalledWith({ level: 'Woreda', parents: ['zone-ET1401'] });
+      pick('Woreda 01');
+      expect(useAreas).toHaveBeenCalledWith({ level: 'Kebele', parents: ['woreda-ET140101'] });
+      expect(kebele()).toBeEnabled();
+    });
+
+    it('sends the chosen names, and clears the narrower areas when a broader one changes', async () => {
+      renderForm();
+      fillValidForm('Local NGO');
+      pick('Woreda 01');
+      pick('Kebele 01');
+
+      // Changing the Region drops the Zone, Woreda and Kebele picked under the old one.
+      pick('Oromia');
+      expect(screen.getByRole('combobox', { name: /^Zone/ })).toHaveValue('');
+      expect(screen.getByRole('combobox', { name: /^Woreda/ })).toBeDisabled();
+      fireEvent.click(registerButton());
+      expect(screen.getByText('This field is required.')).toBeInTheDocument();
+      expect(registerOrganisation).not.toHaveBeenCalled();
+
+      pick('East Shewa');
+      fireEvent.click(registerButton());
+      await waitFor(() => expect(registerOrganisation).toHaveBeenCalledTimes(1));
+      const sent = registerOrganisation.mock.calls[0]![0];
+      expect(sent).toMatchObject({ region: 'Oromia', zone: 'East Shewa' });
+      expect(sent).not.toHaveProperty('woreda');
+      expect(sent).not.toHaveProperty('kebele');
+    });
+
+    it('sends the Woreda and Kebele names when they are chosen', async () => {
+      renderForm();
+      fillValidForm('Local NGO');
+      pick('Woreda 01');
+      pick('Kebele 01');
+      fireEvent.click(registerButton());
+
+      await waitFor(() => expect(registerOrganisation).toHaveBeenCalledTimes(1));
+      expect(registerOrganisation.mock.calls[0]![0]).toMatchObject({
+        region: 'Addis Ababa',
+        zone: 'Arada Sub-city',
+        woreda: 'Woreda 01',
+        kebele: 'Kebele 01',
+      });
+    });
+  });
+
+  it('asks for a 4-digit postal code in Ethiopia, and only a length-and-characters one elsewhere', () => {
+    renderForm();
+    const postal = screen.getByLabelText(/^Postal code/);
+    const ethiopian = 'Ethiopian postal codes are exactly 4 digits, e.g. 1000.';
+
+    fireEvent.change(postal, { target: { value: '12345' } });
+    fireEvent.blur(postal);
+    expect(screen.getByText(ethiopian)).toBeInTheDocument();
+
+    // The rule follows the country: the same code is fine once it is not Ethiopia.
+    type(/^Country\s*\*/, 'Kenya');
+    expect(screen.queryByText(ethiopian)).not.toBeInTheDocument();
+
+    type(/^Country\s*\*/, 'Ethiopia');
+    fireEvent.blur(postal);
+    expect(screen.getByText(ethiopian)).toBeInTheDocument();
+
+    fireEvent.change(postal, { target: { value: '1000' } });
+    expect(screen.queryByText(ethiopian)).not.toBeInTheDocument();
+  });
+
+  it('takes digits only in the postal code, dropping anything else as it is typed or pasted', () => {
+    renderForm();
+    const postal = screen.getByLabelText(/^Postal code/);
+    expect(postal).toHaveAttribute('inputmode', 'numeric');
+
+    fireEvent.change(postal, { target: { value: '1a0-0 0' } });
+    expect(postal).toHaveValue('1000');
+    fireEvent.change(postal, { target: { value: 'ABC' } });
+    expect(postal).toHaveValue('');
+  });
+
   it('registers an NGO with the backend contract and hands back the record it answers with', async () => {
     registerOrganisation.mockResolvedValue({
       id: 'ORG-0001',
@@ -186,7 +305,7 @@ describe('OrganisationRegistrationForm', () => {
       registration_number: '0012345678',
       representative_name: 'Almaz Tesfaye',
       street_address: 'Bole Road, Block 4',
-      zone: 'Addis Ababa',
+      zone: 'Arada Sub-city',
       region: 'Addis Ababa',
       country: 'Ethiopia',
       postal_code: '1000',

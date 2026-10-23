@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  digitsOnly,
   normaliseWebsite,
   ORGANISATION_FIELDS,
   validateOrganisation,
@@ -119,16 +120,44 @@ describe('registration number', () => {
 });
 
 describe('postal code', () => {
-  it('accepts Ethiopia-style and longer codes', () => {
-    for (const postalCode of ['1000', '12345', 'SW1A 1AA', 'AB-1234']) {
-      expect(check({ postalCode }).postalCode).toBeUndefined();
+  it('accepts exactly 4 digits for Ethiopia, whatever case or spacing the country is typed in', () => {
+    for (const country of ['Ethiopia', ' ethiopia ', 'ETHIOPIA']) {
+      expect(check({ country, postalCode: '1000' }).postalCode).toBeUndefined();
     }
   });
 
-  it('rejects too short, too long and stray punctuation', () => {
-    for (const postalCode of ['12', '12345678901', '-1000', '10#00', '10  00']) {
-      expect(check({ postalCode }).postalCode).toEqual({ code: 'postalCode' });
+  it('rejects anything but 4 digits for Ethiopia', () => {
+    for (const postalCode of ['100', '12345', 'ABCD', '10 00', '1O00', '-100']) {
+      expect(check({ postalCode }).postalCode).toEqual({ code: 'postalCodeEthiopia' });
     }
+  });
+
+  it('ignores whitespace around an Ethiopian code', () => {
+    expect(check({ postalCode: ' 1000 ' }).postalCode).toBeUndefined();
+  });
+
+  it('requires a postal code', () => {
+    expect(check({ postalCode: '' }).postalCode).toEqual({ code: 'required' });
+  });
+
+  it('accepts 3 to 10 digits for other countries', () => {
+    for (const postalCode of ['100', '1000', '12345', '1234567890']) {
+      expect(check({ country: 'Kenya', postalCode }).postalCode).toBeUndefined();
+    }
+  });
+
+  it('rejects letters, separators and the wrong length for other countries', () => {
+    for (const postalCode of ['12', '12345678901', 'SW1A 1AA', 'AB-1234', '-1000', '10#00', '10 00']) {
+      expect(check({ country: 'Kenya', postalCode }).postalCode).toEqual({ code: 'postalCode' });
+    }
+  });
+});
+
+describe('digitsOnly', () => {
+  it('drops everything but digits', () => {
+    expect(digitsOnly('1a0-0 0')).toBe('1000');
+    expect(digitsOnly('ABC')).toBe('');
+    expect(digitsOnly('1000')).toBe('1000');
   });
 });
 

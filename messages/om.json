@@ -79,19 +79,19 @@
       },
       "kebele": {
         "label": "Ganda / Gandaa",
-        "placeholder": "Ganda / Gandaa galchi"
+        "placeholder": "Ganda / Gandaa filadhu"
       },
       "woreda": {
         "label": "Aanaa",
-        "placeholder": "Aanaa galchi"
+        "placeholder": "Aanaa filadhu"
       },
       "zone": {
-        "label": "Godina",
-        "placeholder": "Godina galchi"
+        "label": "Godina / Kutaa magaalaa",
+        "placeholder": "Godina / Kutaa magaalaa filadhu"
       },
       "region": {
         "label": "Naannoo",
-        "placeholder": "Naannoo galchi"
+        "placeholder": "Naannoo filadhu"
       },
       "country": {
         "label": "Biyya",
@@ -115,6 +115,14 @@
         "label": "Bilbila",
         "placeholder": "Lakkoofsa bilbilaa galchi"
       }
+    },
+    "areas": {
+      "loading": "Fe'aa jira…",
+      "none": "Filannoon hin jiru",
+      "selectRegionFirst": "Duraan naannoo filadhu",
+      "selectZoneFirst": "Duraan godina filadhu",
+      "selectWoredaFirst": "Duraan aanaa filadhu",
+      "loadFailed": "Tarreeffamichi kun hin fe'amne. Fuulicha irra deebi'ii fe'i."
     },
     "entityTypes": {
       "localNgo": "NGO Naannoo",
@@ -144,7 +152,8 @@
       "entityType": "Gosoota dhaabbataa tarreeffaman keessaa tokko filadhu.",
       "taxId": "Arfii ykn lakkoofsa 3 hanga 60 fayyadami; gidduu isaanii sarara gabaabaa ykn sarara muraasuu ni danda'ama.",
       "memberCount": "Lakkoofsa guutuu galchi, fkn 120.",
-      "postalCode": "Koodii poostaa sirrii galchi, fkn 1000.",
+      "postalCode": "Koodii poostaa lakkoofsa 3 hanga 10 galchi, fkn 1000.",
+      "postalCodeEthiopia": "Koodiin poostaa Itiyoophiyaa lakkoofsa 4 qofa, fkn 1000.",
       "registrationNumberTaken": "Dhaabbanni lakkoofsa galmee kanaan galmaa'e duraanuu jira.",
       "website": "Teessoo marsariitii sirrii galchi, fkn www.example.org.",
       "email": "Teessoo imeelii sirrii galchi, fkn name@example.com.",

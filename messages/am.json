@@ -79,19 +79,19 @@
       },
       "kebele": {
         "label": "ቀበሌ / መንደር",
-        "placeholder": "ቀበሌ / መንደር ያስገቡ"
+        "placeholder": "ቀበሌ / መንደር ይምረጡ"
       },
       "woreda": {
         "label": "ወረዳ",
-        "placeholder": "ወረዳ ያስገቡ"
+        "placeholder": "ወረዳ ይምረጡ"
       },
       "zone": {
-        "label": "ዞን",
-        "placeholder": "ዞን ያስገቡ"
+        "label": "ዞን / ክፍለ ከተማ",
+        "placeholder": "ዞን / ክፍለ ከተማ ይምረጡ"
       },
       "region": {
         "label": "ክልል",
-        "placeholder": "ክልል ያስገቡ"
+        "placeholder": "ክልል ይምረጡ"
       },
       "country": {
         "label": "አገር",
@@ -115,6 +115,14 @@
         "label": "ስልክ",
         "placeholder": "ስልክ ቁጥር ያስገቡ"
       }
+    },
+    "areas": {
+      "loading": "በመጫን ላይ…",
+      "none": "ምንም አማራጭ የለም",
+      "selectRegionFirst": "መጀመሪያ ክልል ይምረጡ",
+      "selectZoneFirst": "መጀመሪያ ዞን ይምረጡ",
+      "selectWoredaFirst": "መጀመሪያ ወረዳ ይምረጡ",
+      "loadFailed": "ይህንን ዝርዝር መጫን አልተቻለም። ገጹን እንደገና ይጫኑ።"
     },
     "entityTypes": {
       "localNgo": "የሀገር ውስጥ መንግሥታዊ ያልሆነ ድርጅት",
@@ -144,7 +152,8 @@
       "entityType": "ከተዘረዘሩት የተቋም ዓይነቶች አንዱን ይምረጡ።",
       "taxId": "ከ3 እስከ 60 ፊደላት ወይም ቁጥሮች ይጠቀሙ፤ በመካከላቸው ሰረዝ ወይም ሰያፍ መስመር ሊኖር ይችላል።",
       "memberCount": "ሙሉ ቁጥር ያስገቡ፣ ለምሳሌ 120።",
-      "postalCode": "ትክክለኛ የፖስታ ኮድ ያስገቡ፣ ለምሳሌ 1000።",
+      "postalCode": "ከ3 እስከ 10 አሃዞች ያለው የፖስታ ኮድ ያስገቡ፣ ለምሳሌ 1000።",
+      "postalCodeEthiopia": "የኢትዮጵያ ፖስታ ኮድ በትክክል 4 አሃዞች ነው፣ ለምሳሌ 1000።",
       "registrationNumberTaken": "በዚህ የምዝገባ ቁጥር የተመዘገበ ድርጅት አስቀድሞ አለ።",
       "website": "ትክክለኛ የድር ጣቢያ አድራሻ ያስገቡ፣ ለምሳሌ www.example.org።",
       "email": "ትክክለኛ ኢሜይል አድራሻ ያስገቡ፣ ለምሳሌ name@example.com።",

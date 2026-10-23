@@ -79,19 +79,19 @@
       },
       "kebele": {
         "label": "Kebele / Village",
-        "placeholder": "Enter Kebele / Village"
+        "placeholder": "Select Kebele / Village"
       },
       "woreda": {
-        "label": "Woreda / District",
-        "placeholder": "Enter Woreda / District"
+        "label": "Woreda",
+        "placeholder": "Select Woreda"
       },
       "zone": {
-        "label": "Zone",
-        "placeholder": "Enter Zone"
+        "label": "Zone / Sub-city",
+        "placeholder": "Select Zone / Sub-city"
       },
       "region": {
         "label": "Region",
-        "placeholder": "Enter Region"
+        "placeholder": "Select Region"
       },
       "country": {
         "label": "Country",
@@ -115,6 +115,14 @@
         "label": "Phone",
         "placeholder": "Enter phone number"
       }
+    },
+    "areas": {
+      "loading": "Loading…",
+      "none": "No areas available",
+      "selectRegionFirst": "Select region first",
+      "selectZoneFirst": "Select zone first",
+      "selectWoredaFirst": "Select woreda first",
+      "loadFailed": "Could not load this list. Reload the page to try again."
     },
     "entityTypes": {
       "localNgo": "Local NGO",
@@ -144,7 +152,8 @@
       "entityType": "Choose one of the listed entity types.",
       "taxId": "Use 3-60 letters or numbers; hyphens or slashes are allowed between them.",
       "memberCount": "Enter a whole number of members, e.g. 120.",
-      "postalCode": "Enter a valid postal code, e.g. 1000.",
+      "postalCode": "Enter a postal code of 3 to 10 digits, e.g. 1000.",
+      "postalCodeEthiopia": "Ethiopian postal codes are exactly 4 digits, e.g. 1000.",
       "registrationNumberTaken": "An organisation with this registration number is already registered.",
       "website": "Enter a valid website address, e.g. www.example.org.",
       "email": "Enter a valid email address, e.g. name@example.com.",

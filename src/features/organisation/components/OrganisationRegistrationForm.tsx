@@ -20,7 +20,9 @@ import {
 } from '../api/organisationApi';
 import { ORGANISATION_CONFIG } from '../config';
 import {
+  digitsOnly,
   ORGANISATION_FIELDS,
+  POSTAL_CODE_MAX_LENGTH,
   validateOrganisation,
   validateOrganisationField,
   type OrganisationField,
@@ -28,6 +30,7 @@ import {
   type OrganisationValues,
 } from '../lib/validation';
 import { backendMessageOf, knownFailureOf } from '../lib/errors';
+import { OrganisationAreaFields, type AreaPatch } from './OrganisationAreaFields';
 
 export interface OrganisationRegistrationFormProps {
   kind: OrganisationKind;
@@ -92,13 +95,30 @@ export function OrganisationRegistrationForm({
   // its own, but it changes what a valid phone number is, so a phone error
   // already showing is re-judged against the newly chosen country. The
   // entity-type dropdown has no blur event, so it is checked on every change.
-  const setValue = (key: string, value: string) => {
+  const setValue = (key: string, typed: string) => {
+    // The postal code is digits only: anything else is dropped as it is typed or pasted.
+    const value = key === 'postalCode' ? digitsOnly(typed) : typed;
     const next = { ...values, [key]: value };
     setValues(next);
     if (key === 'phoneCode') {
       if (fieldErrors.errors.phoneNumber) checkField('phoneNumber', next);
+    } else if (key === 'country') {
+      // Ethiopia has its own 4-digit postal code rule, so a postal-code error already showing is re-judged against the new country.
+      if (fieldErrors.errors.postalCode) checkField('postalCode', next);
+      if (fieldErrors.errors.country) checkField('country', next);
     } else if (key === 'entityType' || fieldErrors.errors[key as OrganisationField]) {
       checkField(key as OrganisationField, next);
+    }
+  };
+
+  // Choosing a Region/Zone/Woreda/Kebele also clears the narrower ones, so the
+  // names are applied as one change — separate `setValue`s would each start
+  // from the same stale `values` and the last would win.
+  const setAreaValues = (patch: AreaPatch) => {
+    const next = { ...values, ...patch };
+    setValues(next);
+    for (const key of Object.keys(patch) as Array<keyof AreaPatch>) {
+      if (fieldErrors.errors[key]) checkField(key, next);
     }
   };
 
@@ -260,32 +280,7 @@ export function OrganisationRegistrationForm({
           required
           className="md:col-span-2"
         />
-        <SITextField
-          {...field}
-          name="kebele"
-          label={t('fields.kebele.label')}
-          placeholder={t('fields.kebele.placeholder')}
-        />
-        <SITextField
-          {...field}
-          name="woreda"
-          label={t('fields.woreda.label')}
-          placeholder={t('fields.woreda.placeholder')}
-        />
-        <SITextField
-          {...field}
-          name="zone"
-          label={t('fields.zone.label')}
-          placeholder={t('fields.zone.placeholder')}
-          required
-        />
-        <SITextField
-          {...field}
-          name="region"
-          label={t('fields.region.label')}
-          placeholder={t('fields.region.placeholder')}
-          required
-        />
+        <OrganisationAreaFields errors={shownErrors} onChange={setAreaValues} />
         <SITextField
           {...field}
           name="country"
@@ -298,6 +293,8 @@ export function OrganisationRegistrationForm({
           name="postalCode"
           label={t('fields.postalCode.label')}
           placeholder={t('fields.postalCode.placeholder')}
+          inputMode="numeric"
+          maxLength={POSTAL_CODE_MAX_LENGTH}
           required
         />
         <SITextField

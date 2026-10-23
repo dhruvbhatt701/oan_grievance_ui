@@ -38,7 +38,8 @@ interface FieldShellProps {
   children: React.ReactNode;
 }
 
-function FieldShell({ name, label, required, error, hint, className, children }: FieldShellProps) {
+/** The label, control slot and inline error/hint around one field — for a form that needs a control the `SI*Field`s don't cover. */
+export function FieldShell({ name, label, required, error, hint, className, children }: FieldShellProps) {
   const id = siFieldId(name);
   return (
     <div className={`min-w-0 ${className ?? ""}`}>
@@ -89,7 +90,8 @@ export function SITextField({
   className,
   type = "text",
   maxLength,
-}: FieldProps & { type?: "text" | "email"; maxLength?: number }) {
+  inputMode,
+}: FieldProps & { type?: "text" | "email"; maxLength?: number; inputMode?: "numeric" }) {
   const id = siFieldId(name);
   const error = errors?.[name];
   return (
@@ -99,6 +101,7 @@ export function SITextField({
         type={type}
         autoComplete="off"
         maxLength={maxLength}
+        inputMode={inputMode}
         value={values[name] || ""}
         onChange={(e) => setValue(name, e.target.value)}
         onBlur={() => onFieldBlur?.(name)}
